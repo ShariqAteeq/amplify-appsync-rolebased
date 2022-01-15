@@ -1,0 +1,56 @@
+service: test-role
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  memorySize: 128
+  runtime: nodejs14.x
+  role: arn:aws:iam::100401489655:role/lambdaAndDynamodbFullAccess
+  profile: fd-new
+  timeout: 20
+  environment:
+    TABLE_PREFIX: ${opt:stage, 'dev'}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:ListTables
+        - dynamodb:DescribeTable
+        - dynamodb:DescribeStream
+        - dynamodb:ListStreams
+        - dynamodb:GetShardIterator
+        - dynamodb:BatchGetItem
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:DescribeReservedCapacity
+        - dynamodb:DescribeReservedCapacityOfferings
+        - dynamodb:GetRecords
+      Resource:
+        - { "Fn::GetAtt": ["TestTable", "Arn"] }
+
+custom:
+  apigwBinary:
+    types:
+      - "image/jpeg"
+
+functions:
+  postConfirmation:
+    handler: handler.postConfirmation
+    role: arn:aws:iam::100401489655:role/Cognito_test_identityAuth_Role
+resources:
+  Resources:
+    TestTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        TableName: TestTodo-${opt:stage, self:provider.dev, 'dev'}

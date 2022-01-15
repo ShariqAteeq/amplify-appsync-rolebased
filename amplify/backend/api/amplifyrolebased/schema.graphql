@@ -1,0 +1,21 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Mutation {
+  addTodo(id: ID!, name: String!): Todo
+    @aws_cognito_user_pools(cognito_groups: ["Volunteers"])
+}
+
+type Query {
+  todos: [Todo]
+    @aws_api_key
+    @aws_cognito_user_pools(cognito_groups: ["Volunteers"])
+  getTodo(id: ID!): Todo @aws_cognito_user_pools(cognito_groups: ["Volunteers"])
+}
+
+type Todo @aws_api_key @aws_cognito_user_pools {
+  id: ID
+  name: String
+}

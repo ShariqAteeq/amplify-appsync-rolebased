@@ -1,0 +1,192 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "An auto-generated nested stack.",
+  "Metadata": {},
+  "Parameters": {
+    "AppSyncApiId": {
+      "Type": "String",
+      "Description": "The id of the AppSync API associated with this project."
+    },
+    "AppSyncApiName": {
+      "Type": "String",
+      "Description": "The name of the AppSync API",
+      "Default": "AppSyncSimpleTransform"
+    },
+    "env": {
+      "Type": "String",
+      "Description": "The environment name. e.g. Dev, Test, or Production",
+      "Default": "NONE"
+    },
+    "S3DeploymentBucket": {
+      "Type": "String",
+      "Description": "The S3 bucket containing all deployment assets for the project."
+    },
+    "S3DeploymentRootKey": {
+      "Type": "String",
+      "Description": "An S3 key relative to the S3DeploymentBucket that points to the root\nof the deployment directory."
+    }
+  },
+  "Resources": {
+    "EmptyResource": {
+      "Type": "Custom::EmptyResource",
+      "Condition": "AlwaysFalse"
+    },
+    "testDataSource": {
+      "Type": "AWS::AppSync::DataSource",
+      "Properties": {
+        "ApiId": {
+          "Ref": "AppSyncApiId"
+        },
+        "DynamoDBConfig": {
+          "AwsRegion": "eu-west-1",
+          "TableName": { "Fn::Sub": "TestTodo-${env}" }
+        },
+        "Name": "TEST_DS_TODO",
+        "Type": "AMAZON_DYNAMODB",
+        "ServiceRoleArn": {
+          "Fn::Sub": "arn:aws:iam::100401489655:role/service-role/appsync-ds-ddb-fdm23z-TestTodo-dev"
+        }
+      }
+    },
+    "MutationaddTodo": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": {
+          "Ref": "AppSyncApiId"
+        },
+        "DataSourceName": {
+          "Fn::GetAtt": ["testDataSource", "Name"]
+        },
+        "TypeName": "Mutation",
+        "FieldName": "addTodo",
+        "RequestMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Mutation.addTodo.req.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        },
+        "ResponseMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Mutation.addTodo.res.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "QueryTodos": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": {
+          "Ref": "AppSyncApiId"
+        },
+        "DataSourceName": {
+          "Fn::GetAtt": ["testDataSource", "Name"]
+        },
+        "TypeName": "Query",
+        "FieldName": "todos",
+        "RequestMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Query.todos.req.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        },
+        "ResponseMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Query.todos.res.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "QueryGetTodos": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": {
+          "Ref": "AppSyncApiId"
+        },
+        "DataSourceName": {
+          "Fn::GetAtt": ["testDataSource", "Name"]
+        },
+        "TypeName": "Query",
+        "FieldName": "getTodo",
+        "RequestMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Query.getTodo.req.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        },
+        "ResponseMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Query.getTodo.res.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Conditions": {
+    "HasEnvironmentParameter": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "env"
+            },
+            "NONE"
+          ]
+        }
+      ]
+    },
+    "AlwaysFalse": {
+      "Fn::Equals": ["true", "false"]
+    }
+  },
+  "Outputs": {
+    "EmptyOutput": {
+      "Description": "An empty output. You may delete this if you have at least one resource above.",
+      "Value": ""
+    }
+  }
+}
